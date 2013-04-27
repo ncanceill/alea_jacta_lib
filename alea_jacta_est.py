@@ -192,7 +192,15 @@ yacc.yacc()
 #
 # output tools
 
-def print_result(parser,type,expr,dist):
+def _plot_d(d,width,indent):
+	plot = ""
+	b = min(d.d.itervalues())
+	a = width / float(max(d.d.itervalues()) - b)
+	for k,v in d.d.iteritems():
+		plot += repr((k,v)) + indent * ' ' + '\t' + int((v - b) * a + 1) * '#' + '\n'
+	return plot
+
+def print_result(parser,type,expr,dist,width,indent):
 	print("====================")
 	print(expr + '\n')
 	if type == "inline":
@@ -200,7 +208,7 @@ def print_result(parser,type,expr,dist):
 	elif type == "simple":
 		print repr(dist)
 	elif type == "simpleplot":
-		print dist.plot()
+		print _plot_d(dist,width,indent)
 	else:
 		error_option_invalid(parser,"--output",type)
 	print("====================")
@@ -238,7 +246,9 @@ def main():
 	logging.getLogger().setLevel(logging.CRITICAL)
 	parser = optparse.OptionParser(usage=MSG_USAGE,version=MSG_VERSION)
 	group0 = optparse.OptionGroup(parser,"Output options")
-	group0.add_option("-o", "--output",dest="output",default="simple",help="output type [%default] [inline|simple|simpleplot]",metavar="TYPE")
+	group0.add_option("-o", "--output",dest="output",default="simple",help="output type [%default] ['inline','simple','simpleplot']",metavar="TYPE")
+	group0.add_option("-w", "--width",dest="width",default="80",help="output terminal width [%default]",metavar="TYPE")
+	group0.add_option("-I", "--indent",dest="indent",default="4",help="output indent size [%default]",metavar="TYPE")
 	group1 = optparse.OptionGroup(parser,"Logging options")
 	group1.add_option("-D","--debug",action="store_true",dest="debug",default=False,help="enable debug output [%default]")
 	group1.add_option("-V","--verbose",action="store_true",dest="verbose",default=False,help="enable verbose output [%default]")
@@ -252,6 +262,10 @@ def main():
 	if options.verbose:
 		logging.getLogger().setLevel(logging.INFO)
 		VERBOSE = 1
+	if options.output not in ['inline','simple','simpleplot']:
+		error_option_invalid(parser,"--output",type)
+	options.width = int(options.width)
+	options.indent = int(options.indent)
 	# launch
 	print_splash(parser)
 	pool = []
@@ -266,6 +280,6 @@ def main():
 		result.append(queue.get())
 	# results
 	for (expr,dist) in result:
-		print_result(parser,options.output,expr,dist)
+		print_result(parser,options.output,expr,dist,options.width,options.indent)
 
 main()

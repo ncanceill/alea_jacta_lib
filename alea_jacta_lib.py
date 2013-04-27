@@ -1,4 +1,3 @@
-#!/usr/bin/python
 from collections import defaultdict
 
 #
@@ -13,7 +12,7 @@ from collections import defaultdict
 
 #
 # alea_jacta_lib.py
-_VERSION = "0.0a"
+_VERSION = "0.0b"
 #
 # This is a library for computing combined dice rolls.
 #
@@ -30,18 +29,28 @@ _VERSION = "0.0a"
 class D:
 	def __init__(self,d):
 		self.d = d
-	def __add__(self, other):
+	def __add__(self,other):
 		return D(_add(self.d,other.d))
-	def __radd__(self, other):
-		return D(_add(self.d,other.d))
-	def __mul__(self, other):
+	def __radd__(self,other):
+		return D(_add(other.d,self.d))
+	def __neg__(self):
+		return D(_neg(self.d))
+	def __sub__(self,other):
+		return D(_sub(self.d,other.d))
+	def __rsub__(self,other):
+		return D(_sub(other.d,self.d))
+	def __mul__(self,other):
 		return D(_mul(self.d,other.d))
-	def __rmul__(self, other):
-		return D(_mul(self.d,other.d))
-	def __rpow__(self, other):
-		return D(_shf(other,self.d))
+	def __rmul__(self,other):
+		return D(_mul(other.d,self.d))
+	def __rpow__(self,other):
+		return D(_sml(other,self.d))
 	def __str__(self):
-		return str(self.d)
+		return _str_d(self.d)
+	def __repr__(self):
+		return _repr_d(self.d)
+	def plot(self):
+		return _plot_d(self.d)
 
 #
 #
@@ -55,8 +64,11 @@ class D:
 def n(n):
 	return D({n:1})
 
-def d(nFaces):
-	return D(dict([(score + 1,1) for score in range(nFaces)]))
+def d(n):
+	return D(dict([(k + 1,1) for k in range(n)]))
+
+def q(n):
+	return D(dict([(k,1) for k in range(n)]))
 
 #
 # private
@@ -69,11 +81,24 @@ def _add(dx,dy):
 	return r
 
 def _shf(n,d):
-	return dict([(s,n * o) for s,o in d.iteritems()])
+	return dict([(k,n * v) for k,v in d.iteritems()])
+
+def _neg(d):
+	return dict([(-k,v) for k,v in d.iteritems()])
+
+def _sub(dx,dy):
+	r = defaultdict(int)
+	for x in dx:
+		for y in dy:
+			r[x - y] += dx[x] * dy[y]
+	return r
 
 def _sum(ds):
-	if len(ds) < 1: return ds[0]
+	if len(ds) < 2: return ds[0]
 	return _add(ds[0],_sum(ds[1:]))
+
+def _sml(n,d):
+	return _sum(n*[d])
 
 def _mul(dx,dy):
 	r = defaultdict(int)
@@ -81,3 +106,18 @@ def _mul(dx,dy):
 		for y in dy:
 			r[x * y] += dx[x] * dy[y]
 	return r
+
+def _str_d(d):
+	return repr(dict(d.iteritems()))
+
+def _repr_d(d):
+	repr = ""
+	for k,v in d.iteritems():
+		repr += repr((k,v)) + '\n'
+	return repr
+
+def _plot_d(d):
+	plot = ""
+	for k,v in d.iteritems():
+		plot += repr((k,v)) + '  \t' + v * '#' + '\n'
+	return plot

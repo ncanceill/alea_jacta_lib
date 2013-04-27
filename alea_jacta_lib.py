@@ -49,8 +49,6 @@ class D:
 		return _str_d(self.d)
 	def __repr__(self):
 		return _repr_d(self.d)
-	def plot(self):
-		return _plot_d(self.d)
 
 #
 #
@@ -115,9 +113,3 @@ def _repr_d(d):
 	for k,v in d.iteritems():
 		repr += repr((k,v)) + '\n'
 	return repr
-
-def _plot_d(d):
-	plot = ""
-	for k,v in d.iteritems():
-		plot += repr((k,v)) + '  \t' + v * '#' + '\n'
-	return plot

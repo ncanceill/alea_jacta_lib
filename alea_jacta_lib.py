@@ -106,10 +106,10 @@ def _mul(dx,dy):
 	return r
 
 def _str_d(d):
-	return repr(dict(d.iteritems()))
+	return repr(sorted(dict(d.iteritems())))
 
 def _repr_d(d):
-	repr = ""
-	for k,v in d.iteritems():
-		repr += repr((k,v)) + '\n'
-	return repr
+	rep = ""
+	for k,v in sorted(d.iteritems()):
+		rep += repr((k,v)) + '\n'
+	return rep

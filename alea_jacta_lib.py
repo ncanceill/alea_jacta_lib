@@ -27,24 +27,25 @@ _VERSION = "0.0b"
 #
 
 class D:
-	def __init__(self,d):
+	def __init__(self,d,n=_nd(d)):
 		self.d = d
+		self.n = n
 	def __add__(self,other):
-		return D(_add(self.d,other.d))
+		return D(_add(self.d,other.d),self.n*other.n)
 	def __radd__(self,other):
-		return D(_add(other.d,self.d))
+		return D(_add(other.d,self.d),self.n*other.n)
 	def __neg__(self):
-		return D(_neg(self.d))
+		return D(_neg(self.d),self.n)
 	def __sub__(self,other):
-		return D(_sub(self.d,other.d))
+		return D(_sub(self.d,other.d),self.n*other.n)
 	def __rsub__(self,other):
-		return D(_sub(other.d,self.d))
+		return D(_sub(other.d,self.d),self.n*other.n)
 	def __mul__(self,other):
-		return D(_mul(self.d,other.d))
+		return D(_mul(self.d,other.d),self.n*other.n)
 	def __rmul__(self,other):
-		return D(_mul(other.d,self.d))
+		return D(_mul(other.d,self.d),self.n*other.n)
 	def __rpow__(self,other):
-		return D(_sml(other,self.d))
+		return D(_sml(other,self.d),self.n)
 	def __str__(self):
 		return _str_d(self.d)
 	def __repr__(self):
@@ -70,6 +71,12 @@ def q(n):
 
 #
 # private
+
+def _nd(d):
+	n = 0
+	for v in d.values():
+		n += v
+	return n
 
 def _add(dx,dy):
 	r = defaultdict(int)

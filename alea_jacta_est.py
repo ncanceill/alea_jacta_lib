@@ -161,7 +161,7 @@ def p_expression_binop(t):
 		| NUMBER D NUMBER
 		| NUMBER Q NUMBER'''
 	if t[2] == '+'  : t[0] = t[1] + t[3]
-	if t[2] == '-'  : t[0] = t[1] - t[3]
+	elif t[2] == '-'  : t[0] = t[1] - t[3]
 	elif t[2] == '*': t[0] = t[1] * t[3]
 	elif t[2] == 'd': t[0] = t[1] ** d(t[3])
 	elif t[2] == 'q': t[0] = t[1] ** q(t[3])

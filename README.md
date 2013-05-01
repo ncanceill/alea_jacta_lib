@@ -47,3 +47,11 @@ Depends on [PLY](http://www.dabeaz.com/ply) for parsing.
 ./alea_jacta_est.py 2d6
 ./alea_jacta_est.py -o simpleplot -w 60 n2*(3q10-1d6)
 ````
+
+## Distribution and contribution
+
+This ReadMe, the library and CLI, and the documentation, distribute under public license. Any contributions are welcome.
+
+Basically, you can do whatever you want with this, and I cannot be held responsible for any of it.
+
+Copyright (c) 2013 Nicolas Canceill

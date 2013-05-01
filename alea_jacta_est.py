@@ -49,7 +49,7 @@ TTY_WIDTH = 120
 # messages
 
 MSG_USAGE = '''
-%prog [-DV] expr0 [expr1 [expr2 ...]]
+%prog [-d[v|q]] [-o out_type [-w width]] expr0 [expr1 [expr2 ...]]
 SYNTAX:
 	OPERATORS:	(by precedence)
 		x+y		== add numbers or scores x and y
@@ -243,15 +243,16 @@ def main():
 	# config
 	global DEBUG, VERBOSE
 	logging.basicConfig(format="%(levelname)s:	%(message)s")
-	logging.getLogger().setLevel(logging.CRITICAL)
+	logging.getLogger().setLevel(logging.ERROR)
 	parser = optparse.OptionParser(usage=MSG_USAGE,version=MSG_VERSION)
 	group0 = optparse.OptionGroup(parser,"Output options")
 	group0.add_option("-o", "--output",dest="output",default="simple",help="output type [%default] ['inline','simple','simpleplot']",metavar="TYPE")
 	group0.add_option("-w", "--width",dest="width",default="80",help="output terminal width [%default]",metavar="TYPE")
-	group0.add_option("-I", "--indent",dest="indent",default="4",help="output indent size [%default]",metavar="TYPE")
+	group0.add_option("--indent",dest="indent",default="4",help="output indent size [%default]",metavar="TYPE")
 	group1 = optparse.OptionGroup(parser,"Logging options")
-	group1.add_option("-D","--debug",action="store_true",dest="debug",default=False,help="enable debug output [%default]")
-	group1.add_option("-V","--verbose",action="store_true",dest="verbose",default=False,help="enable verbose output [%default]")
+	group1.add_option("-d","--debug",action="store_true",dest="debug",default=False,help="enable debug output [%default]")
+	group1.add_option("-v","--verbose",action="store_true",dest="verbose",default=False,help="enable verbose output [%default]")
+	group1.add_option("-q","--quiet",action="store_true",dest="quiet",default=False,help="enable quiet output [%default]")
 	parser.add_option_group(group0)
 	parser.add_option_group(group1)
 	# options
@@ -262,6 +263,9 @@ def main():
 	if options.verbose:
 		logging.getLogger().setLevel(logging.INFO)
 		VERBOSE = 1
+	if options.verbose:
+		logging.getLogger().setLevel(logging.CRITICAL)
+		VERBOSE = -1
 	if options.output not in ['inline','simple','simpleplot']:
 		error_option_invalid(parser,"--output",type)
 	options.width = int(options.width)

@@ -84,7 +84,7 @@ def splfy_frac(x,y):
 	return x,y
 
 def str_d(d,n=1):
-	return "\n".join(_itemize(d,n))
+	return '\n'.join(_itemize(d,n))
 
 def repr_d(d,n=1):
 	return repr(_itemize(d,n))

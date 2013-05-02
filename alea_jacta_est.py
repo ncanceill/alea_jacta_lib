@@ -5,6 +5,7 @@ import logging
 import threading
 import Queue
 from alea_jacta_lib import n,d,q
+from alea_jacta_lib import splfy_frac
 
 #
 #
@@ -18,12 +19,13 @@ from alea_jacta_lib import n,d,q
 
 #
 # alea_jacta_est.py
-VERSION = "0.0b"
+__version__ = "0.0b"
 #
-# This is a CLI front-end for AleaJactaLib.
+# This is a CLI front-end for alea_jacta_lib.
 #
 # Written by Nicolas Canceill
-# Last updated on May 1, 2013
+# Last updated on May 2, 2013
+# Hosted at https://github.com/ncanceill/alea_jacta_lib
 #
 
 #
@@ -37,13 +39,6 @@ VERSION = "0.0b"
 
 DEBUG = False
 VERBOSE = 0
-
-#
-# output tools
-
-TTY_INDENT = 6
-TTY_WIDTH = 120
-#pp = pprint.PrettyPrinter(indent=TTY_INDENT,width=TTY_WIDTH)
 
 #
 # messages
@@ -66,7 +61,7 @@ SYNTAX:
 		1d4+n5			== 1 dice with 4 faces, plus 5
 		n10*1q10+1q10	== Warhammer-like 100dice
  '''
-MSG_VERSION = "This is %prog v" + VERSION + " "
+MSG_VERSION = "This is %prog v" + __version__ + " "
 
 MSG_ERROR_OPTION_REQUIRED = "Please provide all required options. "
 MSG_ERROR_OPTION_INVALID = "Please provide valid values for options. "
@@ -104,18 +99,18 @@ class Computer(threading.Thread):
 
 def error_option_required(parser,option):
 	print_error_option_required(parser,option)
-	sys.exit(2)
+	sys.exit(2)# TODO: stop all threads?
 
 def error_option_invalid(parser,option,value):
 	print_error_option_invalid(parser,option,value)
-	sys.exit(2)
+	sys.exit(2)# TODO: stop all threads?
 
 def error_expression_invalid(parser,expression,error):
 	print_error_expression_invalid(parser,expression,error)
-	sys.exit(1)
+	sys.exit(1)# TODO: stop all threads?
 
 #
-# yacc parsing tools (from readme example)
+# ply parsing tools (from ply readme example)
 
 import ply.lex as lex
 
@@ -192,35 +187,50 @@ yacc.yacc()
 #
 # output tools
 
-def _plot_d(d,width,indent):
-	plot = ""
-	b = min(d.d.itervalues())
-	a = width / float(max(d.d.itervalues()) - b)
-	for k,v in d.d.iteritems():
-		plot += repr((k,'%d / %d' % (v,d.n))) + indent * ' ' + '\t' + int((v - b) * a + 1) * '#' + '\n'
-	return plot
+def _indent(indent):
+	return indent * ' ' + '\t'
 
-def print_result(parser,type,expr,d,width,indent):
-	print("====================")
+def _inlprint_d(d,indent,probs=True):
+	if probs:
+		return _indent(indent).join('{}: {}/{}'.format(k,*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
+	else:
+		return _indent(indent).join('{}: {}'.format(k,v) for k,v in sorted(d.d.iteritems()))
+
+def _splprint_d(d,indent,probs=True):
+	if probs:
+		return '\n'.join('{}:{}{} / {}'.format(k,_indent(indent),*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
+	else:
+		return '\n'.join('{}:{}{}'.format(k,_indent(indent),v) for k,v in sorted(d.d.iteritems()))
+
+def _splplot_d(d,width,indent,probs=True):
+	b = min(d.d.itervalues())
+	a = width / float(max(d.d.itervalues()) - b + 1)
+	if probs:
+		return '\n'.join('{0}:{1}{2[0]} / {2[1]}{3}{4}'.format(k,_indent(indent),splfy_frac(v,d.n),_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
+	else:
+		return '\n'.join('{}:{}{}{}{}'.format(k,_indent(indent),v,_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
+
+def print_result(parser,type,expr,d,width,indent,probs=True):
+	if VERBOSE >= 0 : print("====================")
 	print(expr + '\n')
+	if VERBOSE >= 0 and not probs : print "Hits: %d\n" % d.n
 	if type == "inline":
-		print(d)
+		print(_inlprint_d(d,indent,probs))
 	elif type == "simple":
-		print "Hits: %d" % d.n
-		print repr(d)
+		print(_splprint_d(d,indent,probs))
 	elif type == "simpleplot":
-		print _plot_d(d,width,indent)
+		print(_splplot_d(d,width,indent,probs))
 	else:
 		error_option_invalid(parser,"--output",type)
-	print("====================")
+	if VERBOSE >= 0 : print("====================")
 
 #
 # logging tools
 
 def print_splash(parser):
-	print("====================")
+	if VERBOSE >= 0 : print("====================")
 	parser.print_version()
-	print("====================")
+	if VERBOSE >= 0 : print("====================")
 
 def print_error_option_required(parser,option):
 	msg = MSG_ERROR_OPTION_REQUIRED + "Missing: '%s'" % option
@@ -248,7 +258,8 @@ def main():
 	parser = optparse.OptionParser(usage=MSG_USAGE,version=MSG_VERSION)
 	group0 = optparse.OptionGroup(parser,"Output options")
 	group0.add_option("-o", "--output",dest="output",default="simple",help="output type [%default] ['inline','simple','simpleplot']",metavar="TYPE")
-	group0.add_option("-w", "--width",dest="width",default="80",help="output terminal width [%default]",metavar="TYPE")
+	group0.add_option("-n","--no-probs",action="store_false",dest="probs",default=True,help="disable probability notation")
+	group0.add_option("-w", "--width",dest="width",default="64",help="output terminal width [%default]",metavar="TYPE")
 	group0.add_option("--indent",dest="indent",default="4",help="output indent size [%default]",metavar="TYPE")
 	group1 = optparse.OptionGroup(parser,"Logging options")
 	group1.add_option("-d","--debug",action="store_true",dest="debug",default=False,help="enable debug output [%default]")
@@ -285,6 +296,6 @@ def main():
 		result.append(queue.get())
 	# results
 	for (expr,d) in result:
-		print_result(parser,options.output,expr,d,options.width,options.indent)
+		print_result(parser,options.output,expr,d,options.width,options.indent,options.probs)
 
 main()

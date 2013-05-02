@@ -3,6 +3,7 @@
 # Makefile for alea_jacta_lib v0.0b
 #
 # Written by Nicolas Canceill.
+# Hosted at https://github.com/ncanceill/alea_jacta_lib
 #
 
 #

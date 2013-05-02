@@ -206,7 +206,7 @@ def print_result(parser,type,expr,d,width,indent):
 	if type == "inline":
 		print(d)
 	elif type == "simple":
-		print "Hits: '%d'" % d.n
+		print "Hits: %d" % d.n
 		print repr(d)
 	elif type == "simpleplot":
 		print _plot_d(d,width,indent)

@@ -12,12 +12,13 @@ from collections import defaultdict
 
 #
 # alea_jacta_lib.py
-_VERSION = "0.0b"
+__version__ = "0.0b"
 #
 # This is a library for computing combined dice rolls.
 #
 # Written by Nicolas Canceill
-# Last updated on May 1, 2013
+# Last updated on May 2, 2013
+# Hosted at https://github.com/ncanceill/alea_jacta_lib
 #
 
 #
@@ -48,9 +49,9 @@ class D:
 	def __rpow__(self,other):
 		return D(_sml(other,self.d),self.n**other)
 	def __str__(self):
-		return _str_d(self.d,self.n)
+		return str_d(self.d,self.n)
 	def __repr__(self):
-		return _repr_d(self.d)
+		return repr_d(self.d,self.n)
 
 #
 #
@@ -70,8 +71,29 @@ def d(n):
 def q(n):
 	return D(dict((k,1) for k in range(n)))
 
+def splfy_frac(x,y):
+	def gcd(n,d):
+		while d != 0:
+			t = d
+			d = n%d
+			n = t
+		return n
+	g=gcd(x,y)
+	x/=g
+	y/=g
+	return x,y
+
+def str_d(d,n=1):
+	return "\n".join(_itemize(d,n))
+
+def repr_d(d,n=1):
+	return repr(_itemize(d,n))
+
 #
 # private
+
+def _itemize(d,n=1):
+	return ['{}: {} / {}'.format(k,*splfy_frac(v,n)) for k,v in sorted(d.iteritems())]
 
 def _nd(d):
 	n = 0
@@ -112,12 +134,3 @@ def _mul(dx,dy):
 		for y in dy:
 			r[x * y] += dx[x] * dy[y]
 	return r
-
-def _str_d(d,n=1):
-	return repr(dict((k,'%d / %d' % (v,n)) for k,v in sorted(d.iteritems())))
-
-def _repr_d(d):
-	rep = ""
-	for k,v in sorted(d.iteritems()):
-		rep += repr((k,v)) + '\n'
-	return rep

@@ -23,7 +23,7 @@ VERSION = "0.0b"
 # This is a CLI front-end for AleaJactaLib.
 #
 # Written by Nicolas Canceill
-# Last updated on April 26, 2013
+# Last updated on May 1, 2013
 #
 
 #
@@ -197,18 +197,19 @@ def _plot_d(d,width,indent):
 	b = min(d.d.itervalues())
 	a = width / float(max(d.d.itervalues()) - b)
 	for k,v in d.d.iteritems():
-		plot += repr((k,v)) + indent * ' ' + '\t' + int((v - b) * a + 1) * '#' + '\n'
+		plot += repr((k,'%d / %d' % (v,d.n))) + indent * ' ' + '\t' + int((v - b) * a + 1) * '#' + '\n'
 	return plot
 
-def print_result(parser,type,expr,dist,width,indent):
+def print_result(parser,type,expr,d,width,indent):
 	print("====================")
 	print(expr + '\n')
 	if type == "inline":
-		print(dist)
+		print(d)
 	elif type == "simple":
-		print repr(dist)
+		print "Hits: '%d'" % d.n
+		print repr(d)
 	elif type == "simpleplot":
-		print _plot_d(dist,width,indent)
+		print _plot_d(d,width,indent)
 	else:
 		error_option_invalid(parser,"--output",type)
 	print("====================")
@@ -279,7 +280,7 @@ def main():
 	for t in pool:
 		result.append(queue.get())
 	# results
-	for (expr,dist) in result:
-		print_result(parser,options.output,expr,dist,options.width,options.indent)
+	for (expr,d) in result:
+		print_result(parser,options.output,expr,d,options.width,options.indent)
 
 main()

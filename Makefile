@@ -11,7 +11,9 @@
 # Variables
 #
 
-NAME=alea_jacta_lib
+NAME=alea_jacta_est
+NAME_LIB=alea_jacta_lib
+NAME_GEN=alea_jacta_
 VERSION=0.0b
 
 #
@@ -68,8 +70,11 @@ TMP=$(TMP_PARSER)
 pkg: $(REQ) clean-all
 	$(TAR) $(NAME)-$(VERSION)$(TGZ) $(REQ) $(UTL)
 
+pkg-lib: $(SRC_LIB) clean-all
+	$(TAR) $(NAME)-$(VERSION)$(TGZ) $(SRC_LIB) $(UTL)
+
 pkg-nodep: $(SRC) clean
-	$(TAR) $(NAME)-$(VERSION)-nodep$(TGZ) $(SRC) $(UTL)
+	$(TAR) $(LIB_NAME)-$(VERSION)-nodep$(TGZ) $(SRC) $(UTL)
 
 #
 # Clean
@@ -89,10 +94,13 @@ clean-tmp:
 clean-pkg:
 	$(RM) $(NAME)-$(VERSION)$(TGZ)
 
+clean-pkg-lib:
+	$(RM) $(NAME_LIB)-$(VERSION)$(TGZ)
+
 clean-pkg-nodep:
 	$(RM) $(NAME)-$(VERSION)-nodep$(TGZ)
 
 clean-pkg-all:# clean-pkg clean-pkg-nodep
-	$(RM) $(NAME)-*$(TGZ)
+	$(RM) $(NAME_GEN)*-*$(TGZ)
 
 very-clean: clean-all clean-tmp clean-pkg-all

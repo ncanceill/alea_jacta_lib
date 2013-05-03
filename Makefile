@@ -1,6 +1,6 @@
 #
 #
-# Makefile for alea_jacta_lib v0.0b
+# Makefile for alea_jacta_lib v0.0c
 #
 # Written by Nicolas Canceill.
 # Hosted at https://github.com/ncanceill/alea_jacta_lib
@@ -15,7 +15,7 @@
 NAME=alea_jacta_est
 NAME_LIB=alea_jacta_lib
 NAME_GEN=alea_jacta_
-VERSION=0.0b
+VERSION=0.0c
 
 #
 # Extensions

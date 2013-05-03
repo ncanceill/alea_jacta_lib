@@ -12,12 +12,12 @@ from collections import defaultdict
 
 #
 # alea_jacta_lib.py
-__version__ = "0.0b"
+__version__ = "0.0c"
 #
 # This is a library for computing combined dice rolls.
 #
 # Written by Nicolas Canceill
-# Last updated on May 2, 2013
+# Last updated on May 3, 2013
 # Hosted at https://github.com/ncanceill/alea_jacta_lib
 #
 

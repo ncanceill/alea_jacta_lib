@@ -24,7 +24,7 @@ __version__ = "0.0b"
 # This is a CLI front-end for alea_jacta_lib.
 #
 # Written by Nicolas Canceill
-# Last updated on May 2, 2013
+# Last updated on May 3, 2013
 # Hosted at https://github.com/ncanceill/alea_jacta_lib
 #
 
@@ -43,28 +43,35 @@ VERBOSE = 0
 #
 # messages
 
-MSG_USAGE = '''
-%prog [-d[v|q]] [-o out_type [-w width]] expr0 [expr1 [expr2 ...]]
-SYNTAX:
-	OPERATORS:	(by precedence)
-		x+y		== add numbers or scores x and y
-		x-y		== subsctract numbers or scores y from x
-		x*y		== multiply numbers or scores x and y
-		dy		== the score of 1 dice with 1..y faces
-		qy		== the score of 1 dice with 0..y-1 faces
-		xdy		== the score of x dices with 1..y faces each
-		xqy		== the score of x dices with 0..y-1 faces each
-		ny		== the number y
-	EXAMPLES:
-		1d6				== 1 dice with 6 faces
-		3d6				== 3 dices with 6 faces each
-		1d4+n5			== 1 dice with 4 faces, plus 5
-		n10*1q10+1q10	== Warhammer-like 100dice
- '''
 MSG_VERSION = "This is %prog v" + __version__ + " "
+MSG_USAGE = "%prog [-o <out_type> [-t <indent> -w <width>]] <expr0> [<expr1> ...]]"
+MSG_USAGE_LONG = MSG_USAGE + '''
+
+Syntax:
+
+	Operators:	(by precedence)
+	x+y		== add numbers or scores x and y
+	x-y		== subsctract numbers or scores y from x
+	x*y		== multiply numbers or scores x and y
+	dy		== the score of 1 dice with 1..y faces
+	qy		== the score of 1 dice with 0..y-1 faces
+	xdy		== the score of x dices with 1..y faces each
+	xqy		== the score of x dices with 0..y-1 faces each
+	ny		== the number y
+
+	Examples:
+	1d6		== 1 dice with 6 faces
+	3d6		== 3 dices with 6 faces each
+	1d4+n5		== 1 dice with 4 faces, plus 5
+	n10*1q10+1q10	== Warhammer-like 100dice
+'''
+MSG_DESC = "A Python 2 library and CLI for computing combined dice rolls."
+MSG_EPILOG = "Written by Nicolas Canceill. Hosted at https://github.com/ncanceill/alea_jacta_lib"
 
 MSG_ERROR_OPTION_REQUIRED = "Please provide all required options. "
 MSG_ERROR_OPTION_INVALID = "Please provide valid values for options. "
+
+MSG_WARN_OPTION_CONFLICT = "Options should not conflict. "
 
 #
 #
@@ -189,37 +196,40 @@ yacc.yacc()
 
 def _indent(indent):
 	return indent * ' ' + '\t'
-
-def _inlprint_d(d,indent,probs=True):
+def _inlprint_d(d,indent,probs=True,float_probs=False):
 	if probs:
+		if float_probs:
+			return _indent(indent).join('{}: {:.3}'.format(k,v/float(d.n)) for k,v in sorted(d.d.iteritems()))
 		return _indent(indent).join('{}: {}/{}'.format(k,*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
 	else:
 		return _indent(indent).join('{}: {}'.format(k,v) for k,v in sorted(d.d.iteritems()))
-
-def _splprint_d(d,indent,probs=True):
+def _splprint_d(d,indent,probs=True,float_probs=False):
 	if probs:
+		if float_probs:
+			return '\n'.join('{}:{}{:.3}'.format(k,_indent(indent),v/float(d.n)) for k,v in sorted(d.d.iteritems()))
 		return '\n'.join('{}:{}{} / {}'.format(k,_indent(indent),*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
 	else:
 		return '\n'.join('{}:{}{}'.format(k,_indent(indent),v) for k,v in sorted(d.d.iteritems()))
-
-def _splplot_d(d,width,indent,probs=True):
+def _splplot_d(d,width,indent,probs=True,float_probs=False):
 	b = min(d.d.itervalues())
 	a = width / float(max(d.d.itervalues()) - b + 1)
 	if probs:
+		if float_probs:
+			return '\n'.join('{}:{}{:.3}{}{}'.format(k,_indent(indent),v/float(d.n),_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
 		return '\n'.join('{0}:{1}{2[0]} / {2[1]}{3}{4}'.format(k,_indent(indent),splfy_frac(v,d.n),_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
 	else:
 		return '\n'.join('{}:{}{}{}{}'.format(k,_indent(indent),v,_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
 
-def print_result(parser,type,expr,d,width,indent,probs=True):
+def print_result(parser,type,expr,d,width,indent,probs=True,float_probs=False):
 	if VERBOSE >= 0 : print("====================")
-	print(expr + '\n')
-	if VERBOSE >= 0 and not probs : print "Hits: %d\n" % d.n
+	print(expr)
+	if VERBOSE >= 0 and not probs : print "\nHits: %d\n" % d.n
 	if type == "inline":
-		print(_inlprint_d(d,indent,probs))
+		print(_inlprint_d(d,indent,probs,float_probs))
 	elif type == "simple":
-		print(_splprint_d(d,indent,probs))
+		print(_splprint_d(d,indent,probs,float_probs))
 	elif type == "simpleplot":
-		print(_splplot_d(d,width,indent,probs))
+		print(_splplot_d(d,width,indent,probs,float_probs))
 	else:
 		error_option_invalid(parser,"--output",type)
 	if VERBOSE >= 0 : print("====================")
@@ -232,17 +242,22 @@ def print_splash(parser):
 	parser.print_version()
 	if VERBOSE >= 0 : print("====================")
 
+def print_usage():
+	print "Usage:\t" + MSG_USAGE
+
 def print_error_option_required(parser,option):
 	msg = MSG_ERROR_OPTION_REQUIRED + "Missing: '%s'" % option
 	logging.error(msg)
-	parser.error(msg)
-	parser.print_usage()
-
+	if VERBOSE >= 1 : parser.error(msg)
 def print_error_option_invalid(parser,option,value):
-	msg = MSG_ERROR_OPTION_INVALID + "Invalid value '%s' for: '%s'" % (value,option)
+	msg = MSG_ERROR_OPTION_INVALID + "Invalid value '%s' for option '%s'" % (value,option)
 	logging.error(msg)
-	parser.error(msg)
-	parser.print_usage()
+	if VERBOSE >= 1 : parser.error(msg)
+
+def print_warn_option_conflict(parser,opt_x,opt_y):
+	msg = MSG_WARN_OPTION_CONFLICT + "'%s' and '%s' are mutually exclusive, ignoring '%s'." % (opt_x,opt_y,opt_x)
+	logging.warning(msg)
+	if VERBOSE >= 1 : print_usage()
 
 #
 #
@@ -255,31 +270,35 @@ def main():
 	global DEBUG, VERBOSE
 	logging.basicConfig(format="%(levelname)s:	%(message)s")
 	logging.getLogger().setLevel(logging.ERROR)
-	parser = optparse.OptionParser(usage=MSG_USAGE,version=MSG_VERSION)
+	# options
+	parser = optparse.OptionParser(version=MSG_VERSION,usage=MSG_USAGE_LONG,description=MSG_DESC,epilog=MSG_EPILOG,conflict_handler="error")
 	group0 = optparse.OptionGroup(parser,"Output options")
-	group0.add_option("-o", "--output",dest="output",default="simple",help="output type [%default] ['inline','simple','simpleplot']",metavar="TYPE")
-	group0.add_option("-n","--no-probs",action="store_false",dest="probs",default=True,help="disable probability notation")
-	group0.add_option("-w", "--width",dest="width",default="64",help="output terminal width [%default]",metavar="TYPE")
-	group0.add_option("--indent",dest="indent",default="4",help="output indent size [%default]",metavar="TYPE")
+	group0.add_option("-o","--output",dest="output",default="simple",help="output type [%default] ['inline','simple','simpleplot']",metavar="TYPE")
+	group0.add_option("-n","--no-probs",action="store_true",dest="no_probs",default=False,help="display probabilities as counts [%default]")
+	group0.add_option("-f","--float-probs",action="store_true",dest="float_probs",default=False,help="display probabilites as floats [%default]")
+	group0.add_option("-w","--width",dest="width",default="64",help="output terminal width [%default]",metavar="TYPE")
+	group0.add_option("-t","--indent",dest="indent",default="8",help="output indent size [%default]",metavar="TYPE")
 	group1 = optparse.OptionGroup(parser,"Logging options")
 	group1.add_option("-d","--debug",action="store_true",dest="debug",default=False,help="enable debug output [%default]")
 	group1.add_option("-v","--verbose",action="store_true",dest="verbose",default=False,help="enable verbose output [%default]")
 	group1.add_option("-q","--quiet",action="store_true",dest="quiet",default=False,help="enable quiet output [%default]")
 	parser.add_option_group(group0)
 	parser.add_option_group(group1)
-	# options
+	# command parsing
 	(options,args) = parser.parse_args()
 	if options.debug:
 		logging.getLogger().setLevel(logging.DEBUG)
 		DEBUG = True
+	if options.quiet:
+		logging.getLogger().setLevel(logging.CRITICAL)
+		VERBOSE = -1
 	if options.verbose:
 		logging.getLogger().setLevel(logging.INFO)
 		VERBOSE = 1
-	if options.verbose:
-		logging.getLogger().setLevel(logging.CRITICAL)
-		VERBOSE = -1
+		if options.quiet : print_warn_option_conflict(parser,"--quiet","--verbose")
 	if options.output not in ['inline','simple','simpleplot']:
-		error_option_invalid(parser,"--output",type)
+		error_option_invalid(parser,"--output",options.output)
+	if options.no_probs and options.float_probs : print_warn_option_conflict(parser,"--float-probs","--no-probs")
 	options.width = int(options.width)
 	options.indent = int(options.indent)
 	# launch
@@ -289,13 +308,13 @@ def main():
 	result = []
 	for expr in args:
 		pool.append(Computer(expr,queue))
-	# compute
+	# exec
 	for t in pool:
 		t.start()
 	for t in pool:
 		result.append(queue.get())
-	# results
+	# return
 	for (expr,d) in result:
-		print_result(parser,options.output,expr,d,options.width,options.indent,options.probs)
+		print_result(parser,options.output,expr,d,options.width,options.indent,not options.no_probs,options.float_probs)
 
 main()

@@ -19,7 +19,7 @@ from alea_jacta_lib import splfy_frac
 
 #
 # alea_jacta_est.py
-__version__ = "0.0b"
+__version__ = "0.0c"
 #
 # This is a CLI front-end for alea_jacta_lib.
 #

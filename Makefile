@@ -72,10 +72,10 @@ pkg: $(REQ) clean-all
 	$(TAR) $(NAME)-$(VERSION)$(TGZ) $(REQ) $(UTL)
 
 pkg-lib: $(SRC_LIB) clean-all
-	$(TAR) $(NAME)-$(VERSION)$(TGZ) $(SRC_LIB) $(UTL)
+	$(TAR) $(NAME_LIB)-$(VERSION)$(TGZ) $(SRC_LIB) $(UTL)
 
 pkg-nodep: $(SRC) clean
-	$(TAR) $(LIB_NAME)-$(VERSION)-nodep$(TGZ) $(SRC) $(UTL)
+	$(TAR) $(NAME)-$(VERSION)-nodep$(TGZ) $(SRC) $(UTL)
 
 #
 # Clean

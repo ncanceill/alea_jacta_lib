@@ -2,51 +2,37 @@
 
 A Python 2 library and CLI for computing combined dice rolls.
 
-## Requirements
+## Getting started
 
-Requires a basic Python 2 (tested on 2.7.4, should be retro-compatible down to 2.4) installation.
+Please visit the [wiki](../../wiki).
 
-## Library
+### Requirements
 
-### Basic usage
+Requires a basic [Python](http://www.python.org) 2 (tested on 2.7.4, should be retro-compatible down to 2.4) installation.
 
-To use the library:
+The CLI depends on [PLY](http://www.dabeaz.com/ply) for parsing. PLY is included since version 0.0gamma.
+
+### Setup
+
+You can find the latest version packaged on the [tags page](../../tags). The current version is 0.0gamma: [tgz](../../archive/v0.0c.tar.gz) — [zip](../../archive/v0.0c.zip).
+
+Alternatively, you can clone the repository:
+
+````bash
+git clone https://github.com/ncanceill/alea_jacta_lib.git
+````
+
+## Basic usage
+
+Start with `./alea_jacta_est.py -h` to get some help (win***s users, use `python.exe -i alea_jacta_est.py`). See the [CLI wiki](../../wiki/CLI) to get some more help.
+
+To use the library directly:
 
 ````python
 from alea_jacta_lib import n,d,q
 ````
 
-Use `n` for numbers (fixed dices), and `d` or `q` for dices. While `d(x)` and `q(x)` both refer to dices with _x_ faces, `d` starts at 1 while `q` starts at 0, therefore `d(x) == q(x) + n(1)`.
-
-Dices support inner addition `d(x) + d(y)`, inner substraction `d(x) - d(y)`, unary substraction `-d(x)`, inner multiplication `d(x) * d(y)`, and left outer multiplication `x ** d(y)`.
-
-### Examples
-
-````python
->>> d(6)
->>> n(3)*(2**d(6) + q(4) + n(2))
-````
-
-## Command Line Interface
-
-### Basic usage
-
-Start with:
-
-````bash
-./alea_jacta_est.py -h
-````
-
-### Dependencies
-
-Depends on [PLY](http://www.dabeaz.com/ply) for parsing.
-
-### Examples
-
-````bash
-./alea_jacta_est.py 2d6
-./alea_jacta_est.py -o simpleplot -w 60 n2*(3q10-1d6)
-````
+See the [library wiki](../../wiki/Library) to get help about the library.
 
 ## Distribution and contribution
 

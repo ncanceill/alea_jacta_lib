@@ -36,8 +36,8 @@ See the [library wiki](../../wiki/Library) to get help about the library.
 
 ## Distribution and contribution
 
-This ReadMe, the library and CLI, and the documentation, distribute under public license. Any contributions are welcome.
+This ReadMe, the library and CLI, and the documentation, distribute under public license.
 
-Basically, you can do whatever you want with this, and I cannot be held responsible for any of it.
+Any contributions are welcome. Do not hesitate to [drop an issue](../../issues/new) if you found a bug of if you want a new feature.
 
 Copyright (c) 2013 Nicolas Canceill

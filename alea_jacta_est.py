@@ -70,8 +70,11 @@ MSG_EPILOG = "Written by Nicolas Canceill. Hosted at https://github.com/ncanceil
 
 MSG_ERROR_OPTION_REQUIRED = "Please provide all required options. "
 MSG_ERROR_OPTION_INVALID = "Please provide valid values for options. "
+MSG_ERROR_EXPRESSION_INVALID = "Please use valid expressions. "
+MSG_ERROR_PLY_SYNTAX = "Syntax error! "
 
 MSG_WARN_OPTION_CONFLICT = "Options should not conflict. "
+MSG_WARN_PLY_CHAR = "Illegal character! "
 
 #
 #
@@ -107,14 +110,13 @@ class Computer(threading.Thread):
 def error_option_required(parser,option):
 	print_error_option_required(parser,option)
 	sys.exit(2)# TODO: stop all threads?
-
 def error_option_invalid(parser,option,value):
 	print_error_option_invalid(parser,option,value)
 	sys.exit(2)# TODO: stop all threads?
 
-def error_expression_invalid(parser,expression,error):
-	print_error_expression_invalid(parser,expression,error)
-	sys.exit(1)# TODO: stop all threads?
+def error_expression_invalid(expr,error):
+	print_error_expression_invalid(expr,error)
+	sys.exit(1)
 
 #
 # ply parsing tools (from ply readme example)
@@ -144,7 +146,7 @@ def t_newline(t):
 	r'\n+'
 	t.lexer.lineno += t.value.count("\n")
 def t_error(t):
-	print("Illegal character '%s'" % t.value[0])
+	print_warn_ply_char(t.value[0],skipping=True)
 	t.lexer.skip(1)
 
 lex.lex()
@@ -187,7 +189,7 @@ def p_expression_number(t):
 	t[0] = t[1]
 
 def p_error(t):
-	print("Syntax error at '%s'" % t.value)
+	error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_SYNTAX)
 
 yacc.yacc()
 
@@ -201,15 +203,13 @@ def _inlprint_d(d,indent,probs=True,float_probs=False):
 		if float_probs:
 			return _indent(indent).join('{}: {:.3}'.format(k,v/float(d.n)) for k,v in sorted(d.d.iteritems()))
 		return _indent(indent).join('{}: {}/{}'.format(k,*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
-	else:
-		return _indent(indent).join('{}: {}'.format(k,v) for k,v in sorted(d.d.iteritems()))
+	return _indent(indent).join('{}: {}'.format(k,v) for k,v in sorted(d.d.iteritems()))
 def _splprint_d(d,indent,probs=True,float_probs=False):
 	if probs:
 		if float_probs:
 			return '\n'.join('{}:{}{:.3}'.format(k,_indent(indent),v/float(d.n)) for k,v in sorted(d.d.iteritems()))
 		return '\n'.join('{}:{}{} / {}'.format(k,_indent(indent),*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
-	else:
-		return '\n'.join('{}:{}{}'.format(k,_indent(indent),v) for k,v in sorted(d.d.iteritems()))
+	return '\n'.join('{}:{}{}'.format(k,_indent(indent),v) for k,v in sorted(d.d.iteritems()))
 def _splplot_d(d,width,indent,probs=True,float_probs=False):
 	b = min(d.d.itervalues())
 	a = width / float(max(d.d.itervalues()) - b + 1)
@@ -217,8 +217,7 @@ def _splplot_d(d,width,indent,probs=True,float_probs=False):
 		if float_probs:
 			return '\n'.join('{}:{}{:.3}{}{}'.format(k,_indent(indent),v/float(d.n),_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
 		return '\n'.join('{0}:{1}{2[0]} / {2[1]}{3}{4}'.format(k,_indent(indent),splfy_frac(v,d.n),_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
-	else:
-		return '\n'.join('{}:{}{}{}{}'.format(k,_indent(indent),v,_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
+	return '\n'.join('{}:{}{}{}{}'.format(k,_indent(indent),v,_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
 
 def print_result(parser,type,expr,d,width,indent,probs=True,float_probs=False):
 	if VERBOSE >= 0 : print("====================")
@@ -246,18 +245,25 @@ def print_usage():
 	print "Usage:\t" + MSG_USAGE
 
 def print_error_option_required(parser,option):
-	msg = MSG_ERROR_OPTION_REQUIRED + "Missing: '%s'" % option
+	msg = MSG_ERROR_OPTION_REQUIRED + "Missing: '%s'. " % option
 	logging.error(msg)
 	if VERBOSE >= 1 : parser.error(msg)
 def print_error_option_invalid(parser,option,value):
-	msg = MSG_ERROR_OPTION_INVALID + "Invalid value '%s' for option '%s'" % (value,option)
+	msg = MSG_ERROR_OPTION_INVALID + "Invalid value '%s' for option '%s'. " % (value,option)
 	logging.error(msg)
 	if VERBOSE >= 1 : parser.error(msg)
+def print_error_expression_invalid(expr,error):
+	msg = MSG_ERROR_EXPRESSION_INVALID + "PLY: %s in expression '%s'." % (error,expr)
+	logging.error(msg)
 
 def print_warn_option_conflict(parser,opt_x,opt_y):
-	msg = MSG_WARN_OPTION_CONFLICT + "'%s' and '%s' are mutually exclusive, ignoring '%s'." % (opt_x,opt_y,opt_x)
+	msg = MSG_WARN_OPTION_CONFLICT + "'%s' and '%s' are mutually exclusive, ignoring '%s'. " % (opt_x,opt_y,opt_x)
 	logging.warning(msg)
 	if VERBOSE >= 1 : print_usage()
+def print_warn_ply_char(c,skipping=True):
+	msg = MSG_WARN_PLY_CHAR + "Character '%s' is not allowed. " % (c)
+	if skipping : msg += "Skip and proceed. "
+	logging.warning(msg)
 
 #
 #
@@ -312,8 +318,10 @@ def main():
 	for t in pool:
 		t.start()
 	for t in pool:
-		result.append(queue.get())
+		t.join()
 	# return
+	while not queue.empty():
+		result.append(queue.get())
 	for (expr,d) in result:
 		print_result(parser,options.output,expr,d,options.width,options.indent,not options.no_probs,options.float_probs)
 

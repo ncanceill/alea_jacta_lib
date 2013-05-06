@@ -72,6 +72,7 @@ MSG_ERROR_OPTION_REQUIRED = "Please provide all required options. "
 MSG_ERROR_OPTION_INVALID = "Please provide valid values for options. "
 MSG_ERROR_EXPRESSION_INVALID = "Please use valid expressions. "
 MSG_ERROR_PLY_SYNTAX = "Syntax error! "
+MSG_ERROR_PLY_TYPE = "Type error! "
 
 MSG_WARN_OPTION_CONFLICT = "Options should not conflict. "
 MSG_WARN_PLY_CHAR = "Illegal character! "
@@ -164,11 +165,15 @@ def p_expression_binop(t):
 		| expression MINUS expression
 		| NUMBER D NUMBER
 		| NUMBER Q NUMBER'''
-	if t[2] == '+'  : t[0] = t[1] + t[3]
-	elif t[2] == '-'  : t[0] = t[1] - t[3]
-	elif t[2] == '*': t[0] = t[1] * t[3]
-	elif t[2] == 'd': t[0] = t[1] ** d(t[3])
-	elif t[2] == 'q': t[0] = t[1] ** q(t[3])
+	try:
+		if t[2] == '+'  : t[0] = t[1] + t[3]
+		elif t[2] == '-'  : t[0] = t[1] - t[3]
+		elif t[2] == '*': t[0] = t[1] * t[3]
+		elif t[2] == 'd': t[0] = t[1] ** d(t[3])
+		elif t[2] == 'q': t[0] = t[1] ** q(t[3])
+	except TypeError as te:
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+
 def p_expression_n(t):
 	'expression : N NUMBER'
 	t[0] = n(t[2])

@@ -89,7 +89,16 @@ def d(n):
 def q(n):
 	return D(dict((k,1) for k in range(n)))
 
-def splfy_frac(x,y):
+def str_d(d,n=1):
+	return '\n'.join(_itemize(d,n))
+
+def repr_d(d,n=1):
+	return repr(_itemize(d,n))
+
+#
+# private
+
+def _splfy_frac(x,y):
 	def gcd(n,d):
 		while d != 0:
 			t = d
@@ -101,17 +110,8 @@ def splfy_frac(x,y):
 	y/=g
 	return x,y
 
-def str_d(d,n=1):
-	return '\n'.join(_itemize(d,n))
-
-def repr_d(d,n=1):
-	return repr(_itemize(d,n))
-
-#
-# private
-
 def _itemize(d,n=1):
-	return ['{}: {} / {}'.format(k,*splfy_frac(v,n)) for k,v in sorted(d.iteritems())]
+	return ['{}: {} / {}'.format(k,*_splfy_frac(v,n)) for k,v in sorted(d.iteritems())]
 
 def _nd(d):
 	n = 0

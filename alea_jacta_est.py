@@ -175,7 +175,7 @@ def p_d_expression_binop(t):
 		elif t[2] == 'd': t[0] = t[1] ** d(t[3])
 		elif t[2] == 'q': t[0] = t[1] ** q(t[3])
 	except TypeError as te:
-		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + "(%s)" % str(te))
 def p_i_expression_binop(t):
 	'''i_expression : i_expression PLUS i_expression
 		| i_expression MINUS i_expression
@@ -185,7 +185,7 @@ def p_i_expression_binop(t):
 		elif t[2] == '-'  : t[0] = t[1] - t[3]
 		elif t[2] == '*': t[0] = t[1] * t[3]
 	except TypeError as te:
-		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + "(%s)" % str(te))
 def p_d_expression_binop_lefti(t):
 	'''d_expression : i_expression PLUS d_expression
 		| i_expression MINUS d_expression
@@ -195,7 +195,7 @@ def p_d_expression_binop_lefti(t):
 		elif t[2] == '-'  : t[0] = n(t[1]) - t[3]
 		elif t[2] == '*': t[0] = n(t[1]) * t[3]
 	except TypeError as te:
-		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + "(%s)" % str(te))
 def p_d_expression_binop_righti(t):
 	'''d_expression : d_expression PLUS i_expression
 		| d_expression MINUS i_expression
@@ -205,7 +205,7 @@ def p_d_expression_binop_righti(t):
 		elif t[2] == '-'  : t[0] = t[1] - n(t[3])
 		elif t[2] == '*': t[0] = t[1] * n(t[3])
 	except TypeError as te:
-		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + "(%s)" % str(te))
 
 def p_expression_n(t):
 	'd_expression : N i_expression'

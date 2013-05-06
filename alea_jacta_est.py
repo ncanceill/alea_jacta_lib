@@ -5,7 +5,6 @@ import logging
 import threading
 import Queue
 from alea_jacta_lib import n,d,q
-from alea_jacta_lib import splfy_frac
 
 #
 #
@@ -240,28 +239,41 @@ yacc.yacc()
 #
 # output tools
 
+def gcd(*numbers):
+	from fractions import gcd
+	return reduce(gcd,numbers)
+def lcm(*numbers):
+	def lcm(a,b):
+		return (a * b) // gcd(a,b)
+	return reduce(lcm,numbers)
+def _norm_fracs(d):
+	denom = lcm(*d.d.itervalues())
+	return [(k,'{}/{}'.format(v*denom/d.n,denom),v) for k,v in sorted(d.d.iteritems())]
+
 def _indent(indent):
 	return indent * ' ' + '\t'
-def _inlprint_d(d,indent,probs=True,float_probs=False):
+def _inlprint_d(d,i,probs=True,float_probs=False):
 	if probs:
 		if float_probs:
-			return _indent(indent).join('{}: {:.3}'.format(k,v/float(d.n)) for k,v in sorted(d.d.iteritems()))
-		return _indent(indent).join('{}: {}/{}'.format(k,*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
-	return _indent(indent).join('{}: {}'.format(k,v) for k,v in sorted(d.d.iteritems()))
-def _splprint_d(d,indent,probs=True,float_probs=False):
+			return _indent(i).join('{}: {:.3}'.format(k,v/float(d.n)) for k,v in sorted(d.d.iteritems()))
+		return _indent(i).join('{}: {}'.format(k,p) for k,p,v in _norm_fracs(d))
+	return _indent(i).join('{}: {}'.format(k,v) for k,v in sorted(d.d.iteritems()))
+def _splprint_d(d,i,probs=True,float_probs=False):
 	if probs:
 		if float_probs:
-			return '\n'.join('{}:{}{:.3}'.format(k,_indent(indent),v/float(d.n)) for k,v in sorted(d.d.iteritems()))
-		return '\n'.join('{}:{}{} / {}'.format(k,_indent(indent),*splfy_frac(v,d.n)) for k,v in sorted(d.d.iteritems()))
-	return '\n'.join('{}:{}{}'.format(k,_indent(indent),v) for k,v in sorted(d.d.iteritems()))
-def _splplot_d(d,width,indent,probs=True,float_probs=False):
+			return '\n'.join('{}:{}{:.3}'.format(k,_indent(i),v/float(d.n)) for k,v in sorted(d.d.iteritems()))
+		return '\n'.join('{}:{}{}'.format(k,_indent(i),p) for k,p,v in _norm_fracs(d))
+	return '\n'.join('{}:{}{}'.format(k,_indent(i),v) for k,v in sorted(d.d.iteritems()))
+def _splplot_d(d,width,i,probs=True,float_probs=False):
 	b = min(d.d.itervalues())
 	a = width / float(max(d.d.itervalues()) - b + 1)
+	def _splplotline(v):
+		return int((v - b) * a + 1) * '#'
 	if probs:
 		if float_probs:
-			return '\n'.join('{}:{}{:.3}{}{}'.format(k,_indent(indent),v/float(d.n),_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
-		return '\n'.join('{0}:{1}{2[0]} / {2[1]}{3}{4}'.format(k,_indent(indent),splfy_frac(v,d.n),_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
-	return '\n'.join('{}:{}{}{}{}'.format(k,_indent(indent),v,_indent(indent),int((v - b) * a + 1) * '#') for k,v in sorted(d.d.iteritems()))
+			return '\n'.join('{}:{}{:.3}{}{}'.format(k,_indent(i),v/float(d.n),_indent(i),_splplotline(v)) for k,v in sorted(d.d.iteritems()))
+		return '\n'.join('{}:{}{}{}{}'.format(k,_indent(i),p,_indent(i),_splplotline(v)) for k,p,v in _norm_fracs(d))
+	return '\n'.join('{}:{}{}{}{}'.format(k,_indent(i),v,_indent(i),_splplotline(v)) for k,v in sorted(d.d.iteritems()))
 
 def print_result(parser,type,expr,d,width,indent,probs=True,float_probs=False):
 	if VERBOSE >= 0 : print("====================")

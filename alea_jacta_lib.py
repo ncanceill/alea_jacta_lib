@@ -33,19 +33,37 @@ class D:
 		if n == -1 : n = _nd(self.d)
 		self.n = n
 	def __add__(self,other):
-		return D(_add(self.d,other.d),self.n*other.n)
+		try:
+			return D(_add(self.d,other.d),self.n*other.n)
+		except AttributeError:
+			raise TypeError("Can only add two 'D' objects, use 'n' for integers ")
 	def __radd__(self,other):
-		return D(_add(other.d,self.d),self.n*other.n)
+		try:
+			return D(_add(other.d,self.d),self.n*other.n)
+		except AttributeError:
+			raise TypeError("Can only add two 'D' objects, use 'n' for integers ")
 	def __neg__(self):
 		return D(_neg(self.d),self.n)
 	def __sub__(self,other):
-		return D(_sub(self.d,other.d),self.n*other.n)
+		try:
+			return D(_sub(self.d,other.d),self.n*other.n)
+		except AttributeError:
+			raise TypeError("Can only substract two 'D' objects, use 'n' for integers ")
 	def __rsub__(self,other):
-		return D(_sub(other.d,self.d),self.n*other.n)
+		try:
+			return D(_sub(other.d,self.d),self.n*other.n)
+		except AttributeError:
+			raise TypeError("Can only substract two 'D' objects, use 'n' for integers ")
 	def __mul__(self,other):
-		return D(_mul(self.d,other.d),self.n*other.n)
+		try:
+			return D(_mul(self.d,other.d),self.n*other.n)
+		except AttributeError:
+			raise TypeError("Can only multiply two 'D' objects, use 'n' for integers ")
 	def __rmul__(self,other):
-		return D(_mul(other.d,self.d),self.n*other.n)
+		try:
+			return D(_mul(other.d,self.d),self.n*other.n)
+		except AttributeError:
+			raise TypeError("Can only multiply two 'D' objects, use 'n' for integers ")
 	def __rpow__(self,other):
 		return D(_sml(other,self.d),self.n**other)
 	def __str__(self):

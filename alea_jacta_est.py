@@ -156,15 +156,18 @@ import ply.yacc as yacc
 
 precedence = (('left','PLUS'),('left','MINUS'),('left','TIMES'),('right','UMINUS'),('right','UD','UQ'),('right','D','Q'),('right','N'),)
 
-def p_statement_expr(t):
-	'statement : expression'
+def p_statement_dexpr(t):
+	'statement : d_expression'
 	t[0] = t[1]
-def p_expression_binop(t):
-	'''expression : expression PLUS expression
-		| expression TIMES expression
-		| expression MINUS expression
-		| NUMBER D NUMBER
-		| NUMBER Q NUMBER'''
+def p_statement_iexpr(t):
+	'statement : i_expression'
+	t[0] = n(t[1])
+def p_d_expression_binop(t):
+	'''d_expression : d_expression PLUS d_expression
+		| d_expression MINUS d_expression
+		| d_expression TIMES d_expression
+		| i_expression D i_expression
+		| i_expression Q i_expression'''
 	try:
 		if t[2] == '+'  : t[0] = t[1] + t[3]
 		elif t[2] == '-'  : t[0] = t[1] - t[3]
@@ -173,24 +176,60 @@ def p_expression_binop(t):
 		elif t[2] == 'q': t[0] = t[1] ** q(t[3])
 	except TypeError as te:
 		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+def p_i_expression_binop(t):
+	'''i_expression : i_expression PLUS i_expression
+		| i_expression MINUS i_expression
+		| i_expression TIMES i_expression'''
+	try:
+		if t[2] == '+'  : t[0] = t[1] + t[3]
+		elif t[2] == '-'  : t[0] = t[1] - t[3]
+		elif t[2] == '*': t[0] = t[1] * t[3]
+	except TypeError as te:
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+def p_d_expression_binop_lefti(t):
+	'''d_expression : i_expression PLUS d_expression
+		| i_expression MINUS d_expression
+		| i_expression TIMES d_expression'''
+	try:
+		if t[2] == '+'  : t[0] = n(t[1]) + t[3]
+		elif t[2] == '-'  : t[0] = n(t[1]) - t[3]
+		elif t[2] == '*': t[0] = n(t[1]) * t[3]
+	except TypeError as te:
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
+def p_d_expression_binop_righti(t):
+	'''d_expression : d_expression PLUS i_expression
+		| d_expression MINUS i_expression
+		| d_expression TIMES i_expression'''
+	try:
+		if t[2] == '+'  : t[0] = t[1] + n(t[3])
+		elif t[2] == '-'  : t[0] = t[1] - n(t[3])
+		elif t[2] == '*': t[0] = t[1] * n(t[3])
+	except TypeError as te:
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_TYPE + str(te))
 
 def p_expression_n(t):
-	'expression : N NUMBER'
+	'd_expression : N i_expression'
 	t[0] = n(t[2])
 def p_expression_ud(t):
-	'expression : D NUMBER %prec UD'
+	'd_expression : D i_expression %prec UD'
 	t[0] = d(t[2])
 def p_expression_uq(t):
-	'expression : Q NUMBER %prec UQ'
+	'd_expression : Q i_expression %prec UQ'
 	t[0] = q(t[2])
-def p_expression_uminus(t):
-	'expression : MINUS NUMBER %prec UMINUS'
+def p_expression_uminus_i(t):
+	'i_expression : MINUS i_expression %prec UMINUS'
 	t[0] = -t[2]
-def p_expression_group(t):
-	'expression : LPAREN expression RPAREN'
+def p_expression_uminus_d(t):
+	'd_expression : MINUS d_expression %prec UMINUS'
+	t[0] = -t[2]
+def p_expression_group_i(t):
+	'i_expression : LPAREN i_expression RPAREN'
+	t[0] = t[2]
+def p_expression_group_d(t):
+	'd_expression : LPAREN d_expression RPAREN'
 	t[0] = t[2]
 def p_expression_number(t):
-	'expression : NUMBER'
+	'i_expression : NUMBER'
 	t[0] = t[1]
 
 def p_error(t):

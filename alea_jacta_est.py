@@ -108,16 +108,16 @@ class Computer(threading.Thread):
 #
 # config tools
 
+def error_expression_invalid(expr,error):
+	print_error_expression_invalid(expr,error)
+	sys.exit(1)
+
 def error_option_required(parser,option):
 	print_error_option_required(parser,option)
 	sys.exit(2)# TODO: stop all threads?
 def error_option_invalid(parser,option,value):
 	print_error_option_invalid(parser,option,value)
 	sys.exit(2)# TODO: stop all threads?
-
-def error_expression_invalid(expr,error):
-	print_error_expression_invalid(expr,error)
-	sys.exit(1)
 
 #
 # ply parsing tools (from ply readme example)

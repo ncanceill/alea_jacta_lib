@@ -36,34 +36,34 @@ class D:
 		try:
 			return D(_add(self.d,other.d),self.n*other.n)
 		except AttributeError:
-			raise TypeError("Can only add two 'D' objects, use 'n' for integers ")
+			raise TypeError("Can only add two dices")
 	def __radd__(self,other):
 		try:
 			return D(_add(other.d,self.d),self.n*other.n)
 		except AttributeError:
-			raise TypeError("Can only add two 'D' objects, use 'n' for integers ")
+			raise TypeError("Can only add two dices")
 	def __neg__(self):
 		return D(_neg(self.d),self.n)
 	def __sub__(self,other):
 		try:
 			return D(_sub(self.d,other.d),self.n*other.n)
 		except AttributeError:
-			raise TypeError("Can only substract two 'D' objects, use 'n' for integers ")
+			raise TypeError("Can only substract two dices")
 	def __rsub__(self,other):
 		try:
 			return D(_sub(other.d,self.d),self.n*other.n)
 		except AttributeError:
-			raise TypeError("Can only substract two 'D' objects, use 'n' for integers ")
+			raise TypeError("Can only substract two dices")
 	def __mul__(self,other):
 		try:
 			return D(_mul(self.d,other.d),self.n*other.n)
 		except AttributeError:
-			raise TypeError("Can only multiply two 'D' objects, use 'n' for integers ")
+			raise TypeError("Can only multiply two dices")
 	def __rmul__(self,other):
 		try:
 			return D(_mul(other.d,self.d),self.n*other.n)
 		except AttributeError:
-			raise TypeError("Can only multiply two 'D' objects, use 'n' for integers ")
+			raise TypeError("Can only multiply two dices")
 	def __rpow__(self,other):
 		return D(_sml(other,self.d),self.n**other)
 	def __str__(self):
@@ -140,10 +140,12 @@ def _sub(dx,dy):
 	return r
 
 def _sum(ds):
-	if len(ds) < 2: return ds[0]
+	if len(ds) < 1 : raise TypeError("Cannot sum zero dices")
+	if len(ds) < 2 : return ds[0]
 	return _add(ds[0],_sum(ds[1:]))
 
 def _sml(n,d):
+	if n < 0 : raise TypeError("Cannot compute a negative number of dices")
 	return _sum(n*[d])
 
 def _mul(dx,dy):

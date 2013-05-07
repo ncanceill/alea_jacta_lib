@@ -381,4 +381,5 @@ def main():
 	for (expr,d) in result:
 		print_result(parser,options.output,expr,d,options.width,options.indent,not options.no_probs,options.float_probs)
 
-main()
+if __name__ == '__main__':
+    main()

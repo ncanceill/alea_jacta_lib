@@ -50,7 +50,7 @@ ABORT = 0
 # messages
 
 MSG_VERSION = "This is %prog v" + __version__ + " "
-MSG_USAGE = " [-o <out_type> [-t <indent> -w <width>] --] <expr0> [<expr1> ...]]"
+MSG_USAGE = " [-o <out_type> [-t <indent> -w <width>]] -- <expr0> [<expr1> ...]]"
 MSG_DESC = "A Python 2 library and CLI for computing combined dice rolls."
 MSG_EPILOG = "Written by Nicolas Canceill. Hosted at https://github.com/ncanceill/alea_jacta_lib"
 MSG_USAGE_LONG = "alea_jacta_est.py" + MSG_USAGE + '''

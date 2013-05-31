@@ -40,41 +40,55 @@ DEBUG = False
 VERBOSE = 0
 
 #
+# threading
+
+SUCCEED = 0
+FAIL = 0
+ABORT = 0
+
+#
 # messages
 
 MSG_VERSION = "This is %prog v" + __version__ + " "
-MSG_USAGE = "%prog [-o <out_type> [-t <indent> -w <width>]] <expr0> [<expr1> ...]]"
-MSG_USAGE_LONG = MSG_USAGE + '''
-
-Syntax:
-
-	Operators:	(by precedence)
-	x+y		== add numbers or scores x and y
-	x-y		== subsctract numbers or scores y from x
-	x*y		== multiply numbers or scores x and y
-	dy		== the score of 1 dice with 1..y faces
-	qy		== the score of 1 dice with 0..y-1 faces
-	xdy		== the score of x dices with 1..y faces each
-	xqy		== the score of x dices with 0..y-1 faces each
-	ny		== the number y
-
-	Examples:
-	1d6		== 1 dice with 6 faces
-	3d6		== 3 dices with 6 faces each
-	1d4+n5		== 1 dice with 4 faces, plus 5
-	n10*1q10+1q10	== Warhammer-like 100dice
-'''
+MSG_USAGE = " [-o <out_type> [-t <indent> -w <width>]] <expr0> [<expr1> ...]]"
 MSG_DESC = "A Python 2 library and CLI for computing combined dice rolls."
 MSG_EPILOG = "Written by Nicolas Canceill. Hosted at https://github.com/ncanceill/alea_jacta_lib"
+MSG_USAGE_LONG = "alea_jacta_est.py" + MSG_USAGE + '''
+
+	''' + MSG_DESC + ''''
+
+		Syntax:
+
+		Operators:	(by precedence)
+		x+y		== add numbers or scores x and y
+		x-y		== subsctract numbers or scores y from x
+		x*y		== multiply numbers or scores x and y
+		dy		== the score of 1 dice with 1..y faces
+		qy		== the score of 1 dice with 0..y-1 faces
+		xdy		== the score of x dices with 1..y faces each
+		xqy		== the score of x dices with 0..y-1 faces each
+		ny		== the number y
+
+		Examples:
+		1d6		== 1 dice with 6 faces
+		3d6		== 3 dices with 6 faces each
+		1d4+n5		== 1 dice with 4 faces, plus 5
+		n10*1q10+1q10	== Warhammer-like 100dice
+
+		''' + MSG_EPILOG
 
 MSG_ERROR_OPTION_REQUIRED = "Please provide all required options. "
 MSG_ERROR_OPTION_INVALID = "Please provide valid values for options. "
 MSG_ERROR_EXPRESSION_INVALID = "Please use valid expressions. "
 MSG_ERROR_PLY_SYNTAX = "Syntax error! "
 MSG_ERROR_PLY_TYPE = "Type error! "
+MSG_ERROR_PLY_VALUE = "Value error! "
 
 MSG_WARN_OPTION_CONFLICT = "Options should not conflict. "
 MSG_WARN_PLY_CHAR = "Illegal character! "
+
+MSG_INFO_START = "Computation starts. "
+MSG_INFO_END = "Computation ends. "
 
 #
 #
@@ -89,14 +103,29 @@ class Computer(threading.Thread):
 		self.queue = q
 		self._stop = threading.Event()
 
-	def stop(self):
-		self._stop.set()
+	def fail(self):
+		global FAIL
+		FAIL = FAIL + 1
+		print_info_end_failure(threading.currentThread())
+		sys.exit(1)
 
-	def stopped(self):
-			return self._stop.isSet()
+	def abort(self):
+		global ABORT
+		ABORT = ABORT + 1
+		print_info_end_abort(threading.currentThread())
+		sys.exit(2)
 
 	def run(self):
+		print_info_start_expr(self)
 		self.queue.put((self.expr,yacc.parse(self.expr)))
+		global SUCCEED
+		SUCCEED = SUCCEED + 1
+		print_info_end_success(self)
+
+#	def stop(self):
+#		self._stop.set()
+#	def stopped(self):
+#			return self._stop.isSet()
 
 #
 #
@@ -107,9 +136,9 @@ class Computer(threading.Thread):
 #
 # config tools
 
-def error_expression_invalid(expr,error):
-	print_error_expression_invalid(expr,error)
-	sys.exit(1)
+def error_expression_invalid(error):
+	print_error_expression_invalid(threading.currentThread().expr,error)
+	threading.currentThread().fail()
 
 def error_option_required(parser,option):
 	print_error_option_required(parser,option)
@@ -136,8 +165,8 @@ def t_NUMBER(t):
 	r'\d+'
 	try:
 		t.value = int(t.value)
-	except ValueError:
-		print("Integer value too large %d", t.value)
+	except ValueError as ve:# should never happen
+		error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_SYNTAX + "(%s)" % str(ve))
 		t.value = 0
 	return t
 t_ignore = " \t"
@@ -232,7 +261,7 @@ def p_expression_number(t):
 	t[0] = t[1]
 
 def p_error(t):
-	error_expression_invalid(threading.currentThread().expr,MSG_ERROR_PLY_SYNTAX)
+	error_expression_invalid(MSG_ERROR_PLY_SYNTAX)
 
 yacc.yacc()
 
@@ -299,6 +328,8 @@ def print_splash(parser):
 
 def print_usage():
 	print "Usage:\t" + MSG_USAGE
+def print_usage_long():
+	print "Usage:\t" + MSG_USAGE_LONG
 
 def print_error_option_required(parser,option):
 	msg = MSG_ERROR_OPTION_REQUIRED + "Missing: '%s'. " % option
@@ -315,11 +346,34 @@ def print_error_expression_invalid(expr,error):
 def print_warn_option_conflict(parser,opt_x,opt_y):
 	msg = MSG_WARN_OPTION_CONFLICT + "'%s' and '%s' are mutually exclusive, ignoring '%s'. " % (opt_x,opt_y,opt_x)
 	logging.warning(msg)
-	if VERBOSE >= 1 : print_usage()
 def print_warn_ply_char(c,skipping=True):
 	msg = MSG_WARN_PLY_CHAR + "Character '%s' is not allowed. " % (c)
 	if skipping : msg += "Skip and proceed. "
 	logging.warning(msg)
+
+def print_info_start(n):
+	msg = MSG_INFO_START + "Threading to evaluate %d expression(s). " % (n)
+	logging.info(msg)
+
+def print_info_start_expr(thrd):
+	msg = MSG_INFO_START + "Evaluating '%s' in %s. " % (thrd.expr,thrd.name)
+	logging.info(msg)
+
+def print_info_end_success(thrd):
+	msg = MSG_INFO_END + "Successfully evaluated '%s' in %s. " % (thrd.expr,thrd.name)
+	logging.info(msg)
+
+def print_info_end_failure(thrd):
+	msg = MSG_INFO_END + "Failed to evaluate '%s' in %s. " % (thrd.expr,thrd.name)
+	logging.info(msg)
+
+def print_info_end_abort(thrd):
+	msg = MSG_INFO_END + "Aborted evaluation of '%s' in %s. " % (thrd.expr,thrd.name)
+	logging.info(msg)
+
+def print_info_end(s,f,a):
+	msg = MSG_INFO_END + "All threads dead, %d succeeded, %d failed, %d aborted. " % (s,f,a)
+	logging.info(msg)
 
 #
 #
@@ -333,7 +387,7 @@ def main():
 	logging.basicConfig(format="%(levelname)s:	%(message)s")
 	logging.getLogger().setLevel(logging.ERROR)
 	# options
-	parser = optparse.OptionParser(version=MSG_VERSION,usage=MSG_USAGE_LONG,description=MSG_DESC,epilog=MSG_EPILOG,conflict_handler="error")
+	parser = optparse.OptionParser(version=MSG_VERSION,usage="%prog" + MSG_USAGE,description=MSG_DESC,epilog=MSG_EPILOG,conflict_handler="error")
 	group0 = optparse.OptionGroup(parser,"Output options")
 	group0.add_option("-o","--output",dest="output",default="simple",help="output type [%default] ['inline','simple','simpleplot']",metavar="TYPE")
 	group0.add_option("-n","--no-probs",action="store_true",dest="no_probs",default=False,help="display probabilities as counts [%default]")
@@ -343,11 +397,17 @@ def main():
 	group1 = optparse.OptionGroup(parser,"Logging options")
 	group1.add_option("-d","--debug",action="store_true",dest="debug",default=False,help="enable debug output [%default]")
 	group1.add_option("-v","--verbose",action="store_true",dest="verbose",default=False,help="enable verbose output [%default]")
+	group1.add_option("-V","--very-verbose",action="store_true",dest="vverbose",default=False,help="enable very verbose output [%default]")
 	group1.add_option("-q","--quiet",action="store_true",dest="quiet",default=False,help="enable quiet output [%default]")
+	parser.add_option("-H","--help-syntax",action="store_true",dest="help",default=False,help="show syntax help message and exit")
 	parser.add_option_group(group0)
 	parser.add_option_group(group1)
+	print_splash(parser)
 	# command parsing
 	(options,args) = parser.parse_args()
+	if options.help:
+		print_usage_long()
+		return
 	if options.debug:
 		logging.getLogger().setLevel(logging.DEBUG)
 		DEBUG = True
@@ -355,22 +415,27 @@ def main():
 		logging.getLogger().setLevel(logging.CRITICAL)
 		VERBOSE = -1
 	if options.verbose:
-		logging.getLogger().setLevel(logging.INFO)
+		logging.getLogger().setLevel(logging.WARNING)
 		VERBOSE = 1
-		if options.quiet : print_warn_option_conflict(parser,"--quiet","--verbose")
+		if options.quiet : print_warn_option_conflict(parser,"-q","-v")
+	if options.vverbose:
+		logging.getLogger().setLevel(logging.INFO)
+		VERBOSE = 2
+		if options.verbose : print_warn_option_conflict(parser,"-v","-V")
+		if options.quiet : print_warn_option_conflict(parser,"-q","-V")
 	if options.output not in ['inline','simple','simpleplot']:
 		error_option_invalid(parser,"--output",options.output)
 	if options.no_probs and options.float_probs : print_warn_option_conflict(parser,"--float-probs","--no-probs")
 	options.width = int(options.width)
 	options.indent = int(options.indent)
 	# launch
-	print_splash(parser)
 	pool = []
 	queue = Queue.Queue()
 	result = []
 	for expr in args:
 		pool.append(Computer(expr,queue))
 	# exec
+	print_info_start(len(pool))
 	for t in pool:
 		t.start()
 	for t in pool:
@@ -378,6 +443,7 @@ def main():
 	# return
 	while not queue.empty():
 		result.append(queue.get())
+	print_info_end(SUCCEED,FAIL,ABORT)
 	for (expr,d) in result:
 		print_result(parser,options.output,expr,d,options.width,options.indent,not options.no_probs,options.float_probs)
 

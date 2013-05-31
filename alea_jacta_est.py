@@ -18,7 +18,7 @@ from alea_jacta_lib import n,d,q
 
 #
 # alea_jacta_est.py
-__version__ = "0.0c"
+__version__ = "0.0rc0"
 #
 # This is a CLI front-end for alea_jacta_lib.
 #

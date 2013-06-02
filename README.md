@@ -14,7 +14,7 @@ The CLI depends on [PLY](http://www.dabeaz.com/ply) for parsing. PLY is included
 
 ### Setup
 
-You can find the latest version packaged on the [tags page](../../tags). The current version is 0.0gamma: [tgz](../../archive/v0.0c.tar.gz) — [zip](../../archive/v0.0c.zip).
+You can find the latest version packaged on the [tags page](../../tags). The current version is 0.0 release candidate 0: [tgz](../../archive/v0.0rc0.tar.gz) — [zip](../../archive/v0.0rc0.zip).
 
 Alternatively, you can clone the repository:
 

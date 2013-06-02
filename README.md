@@ -34,6 +34,21 @@ from alea_jacta_lib import n,d,q
 
 See the [library wiki](../../wiki/Library) to get help about the library.
 
+## Changelog
+
+### version 0.0rc0
+
+* Refactored code
+* Improved parsing (distinction number/dice)
+* Improved logging and verbosity management
+* Improved display of probabilities (fractions/count)
+* Bug fixes (CLI used to trigger library errors)
+
+### version 0.0b
+
+* Refactored code
+* Improved Makefile support
+
 ## Distribution and contribution
 
 This ReadMe, the library and CLI, and the documentation, distribute under public license.

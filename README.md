@@ -44,7 +44,7 @@ See the [library wiki](../../wiki/Library) to get help about the library.
 * Improved display of probabilities (fractions/count)
 * Bug fixes (CLI used to trigger library errors)
 
-### version 0.0b
+### version 0.0c
 
 * Refactored code
 * Improved Makefile support
